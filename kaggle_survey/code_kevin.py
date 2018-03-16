@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+000000000000000000000000000000000000000000000000000000000000000000000000000000   
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 """
-Created on Mon Mar 12 18:47:28 2018
-
-@author: kevin
+Created on Mon Mar 10 18:47:28 2018
+Copyright © 2018 Kevin Feiyu Li
+          @author: Kevin Feiyu Li
+The author is under no obligation to use an open-source license that permit commercial use. The absence of an open-source license demonstrate that default copyright and ownership laws apply. The author retain all rights to this source code and that nobody else may reproduce, distribute, or create derivative works for commercial use from the author's work without permission from the author. 
 """
+000000000000000000000000000000000000000000000000000000000000000000000000000000   
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 import csv
 import pandas as pd
@@ -188,12 +193,16 @@ if __name__ == "__main__":
  
    #convert all to USD
    fil_sal_us,fil_cur_us=currecy_conver(fil_sal, fil_cur ,cur_country, ex_rt)
+   
+   
+   
 
 000000000000000000000000000000000000000000000000000000000000000000000000000000   
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
    useful dataset: fil_sal_us,fil_tool,fil_work_shr_tool,fil_work_dtsz
     1. convert the currecy  --done
     2. use bag of words!!!!
+    3. convert salary range to 1 2 3 4 5
     3. convert text of fil_tool to value (by converter)
     3. predict
     4. plot datasize against the other things
