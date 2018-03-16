@@ -7,6 +7,8 @@ Created on Mon Mar 12 18:47:28 2018
 
 import csv
 import pandas as pd
+import re
+from decimal import Decimal
 
 #-----------------------------------------------------------------------------
 def csv_read_column(file_obj,column_num):
@@ -25,16 +27,66 @@ def csv_whole_read(file_obj):
         t.append(a)
     return t
 #-----------------------------------------------------------------------------
-def csv_dict_reader(file_obj,column_name1, column_name2):
+def csv_dict_reader(file_obj,col_nm1, col_nm2,col_nm3,col_nm4,col_nm5):
     reader = csv.DictReader(file_obj, delimiter=',')
     a=[]
     b=[]
+    c=[]
+    d=[]
+    e=[]
     for line in reader:
-        a.append(line[column_name1])
-        b.append(line[column_name2])
-    return a,b
+        a.append(line[col_nm1])
+        b.append(line[col_nm2])
+        c.append(line[col_nm3])
+        d.append(line[col_nm4])
+        e.append(line[col_nm5])
+    return a,b,c,d,e
+#-----------------------------------------------------------------------------
+def split_line(text):
+    # split the text
+    words = text.split(",")
+    # for each word in the line:
+    to_ls = []
+    for word in words:
+        to_ls.append(word)
+        
+    return to_ls
+#-----------------------------------------------------------------------------
+ #find not empty rows
+def not_empty_idx(ls):
+    not_empty_index=[]
+    for i in range(len(ls)):
+       if not ls[i]=='':
+         not_empty_index.append(i)
+    return not_empty_index
+#-----------------------------------------------------------------------------
+ #fill empty rows with 'Other'
+def fill_empty(ls):
+    fill_empty=[]
+    for i in range(len(ls)):
+       if ls[i]=='':
+          ls[i]='Other'
+    return ls
+#-----------------------------------------------------------------------------
+ #filter txt with useful rows
+def filter_rows_has_txt(idx_ls,var_wait_for_filter):
+    filter_=[]
+    for i in range(len(idx_ls)):
+          filter_.append(var_wait_for_filter[idx_ls[i]])
+    return filter_
 
-   
+#-----------------------------------------------------------------------------
+ #currency conversion   Convert all to USD    overwrite original data
+def currecy_conver(input_sal, input_cur ,cur_country, ex_rt):
+    fil_cur_us=[]
+    fil_sal_us=[]
+    for i in range(len(input_cur)):
+      for j in range(len(cur_country)):
+        if input_cur[i]==cur_country[j]:
+           input_cur[i] ='USD'
+           input_sal[i]=input_sal[i]*ex_rt[j]
+    return input_sal,input_cur
+          
 '''##############################################################################'''
 '''##############################################################################'''
 '''##############################################################################'''
@@ -48,7 +100,6 @@ if __name__ == "__main__":
     name2="LearningDataScience"    #"Age"
     with open(csv_path, 'r',encoding='latin-1') as file_obj:
         a,b= csv_dict_reader(file_obj,name1,name2)
-    
   
     #read info by specify column number
     csv_path = 'multipleChoiceResponses.csv'
@@ -67,45 +118,126 @@ if __name__ == "__main__":
     sub=','
     sg=whole_data[0]
     total_num_question=sg.count(sub)+1
-    
-    
+#-----------------------------------------------------------------------------    
+    #read the compensation and skills and maybe other features out
+        #read info by specify column name
+    csv_path = 'multipleChoiceResponses.csv'
+    name1= "CompensationAmount"
+    name2= "CompensationCurrency"    
+    name3= "WorkToolsSelect"   #the tool they are using at work
+    name4= "WorkCodeSharing" 
+    name5= "WorkDatasetSize"
+    with open(csv_path, 'r',encoding='latin-1') as file_obj:
+      compen,compen_curr,code_tool,work_sharing_tool,work_datasize= csv_dict_reader(file_obj,name1,name2,name3,name4,name5)    
     
 #-----------------------------------------------------------------------------    
-    #run all data into a dict 
+    #delete the empty answer
+    #count number of response to see which questions were answered the most; and then do analysis from there
+    #whole data row 1 is the name of columns and row 2 is useless
+    whole_data1 = whole_data[2:]
+    compen_has_txt_idx=not_empty_idx(compen)
+    #extract the empty rows   filtered_compen = [x for x in compen if not x=='']
+    fil_compen=filter_rows_has_txt(compen_has_txt_idx,compen)
+    fil_compen_curr=filter_rows_has_txt(compen_has_txt_idx,compen_curr)
+    fil_code_tool=filter_rows_has_txt(compen_has_txt_idx,code_tool)
+    fil_work_sharing_tool=filter_rows_has_txt(compen_has_txt_idx,work_sharing_tool)
+    fil_work_datasize=filter_rows_has_txt(compen_has_txt_idx,work_datasize)
+    #extract the text idx of fil_compen_curr
+    fil_compen_curr_has_txt_idx=not_empty_idx(fil_compen_curr)
     
-     lis=['l', 'u', 't']  #dynamic key names
- for line in classified1:
-    dic={}
-    #print(line)
-    x=line.split(",",5)  #maximum allawance of split to the fifth location
-    a=x[0]
-    b=x[4]
-    c=x[5]
-    dic[lis[0]]=a
-    dic[lis[1]]=b
-    dic[lis[2]]=c
-    list_of_dic1.append(dic)
-    
+    #extract the final useful info
+    fil_compen_curr1=filter_rows_has_txt(fil_compen_curr_has_txt_idx,fil_compen_curr)
+    fil_compen1=filter_rows_has_txt(fil_compen_curr_has_txt_idx,fil_compen)
+    fil_code_tool1=filter_rows_has_txt(fil_compen_curr_has_txt_idx,fil_code_tool)
+    fil_work_sharing_tool1=filter_rows_has_txt(fil_compen_curr_has_txt_idx,fil_work_sharing_tool)
+    fil_work_datasize1=filter_rows_has_txt(fil_compen_curr_has_txt_idx,fil_work_datasize)
 
-    dic[label]=a
-    dic[user]=b
-    dic[text]=c
-    list_of_dic.append(dic)
-    
-    
-        for k in lis:
-             dic[k]=
-    
 #-----------------------------------------------------------------------------    
-    #count number of response to see which questions were answered the most; and then do analysis from there 
+  #Useful varilable for later use
+    #fill few empty rows with "Other"
+    fil_tool=fill_empty(fil_code_tool1)
+    fil_work_shr_tool=fill_empty(fil_work_sharing_tool1)
+    fil_work_dtsz=fill_empty(fil_work_datasize1)
+    #rename for easy use
+    fil_sal=fil_compen1
+    #standarize the fil_sal data
+    for x in range(len(fil_sal)):
+        if fil_sal[x]=='-':
+           fil_sal[x]='0'
+        if fil_sal[x]=='':
+           fil_sal[x]='0'
+    fil_cur= fil_compen_curr1
+    fil_sal[216]='100000000000'
+
+#-----------------------------------------------------------------------------  
+  #currency conversion
+    csv_path = 'conversionRates.csv'
+    name1= "originCountry"
+    name2= "exchangeRate"    
+    name3= "originCountry"   #the tool they are using at work
+    name4= "originCountry" 
+    name5= "originCountry"
+    with open(csv_path, 'r',encoding='latin-1') as file_obj:
+      cur_country,ex_rt,no_use,no_use1,no_use2= csv_dict_reader(file_obj,name1,name2,name3,name4,name5)    
+   
+    #convert str to float points
+    for i in range(len(ex_rt)):
+            ex_rt[i]=float(ex_rt[i])
+    for j in range(len(fil_sal)):
+            fil_sal[j]=float(re.sub("[^\d\.]", '', fil_sal[j]))
+ 
+   #convert all to USD
+   fil_sal_us,fil_cur_us=currecy_conver(fil_sal, fil_cur ,cur_country, ex_rt)
+
+000000000000000000000000000000000000000000000000000000000000000000000000000000   
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+   useful dataset: fil_sal_us,fil_tool,fil_work_shr_tool,fil_work_dtsz
+    1. convert the currecy  --done
+    2. use bag of words!!!!
+    3. convert text of fil_tool to value (by converter)
+    3. predict
+    4. plot datasize against the other things
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+      
     
-    t=['0', '1', '', '0', '0', '8.4583', '0']       
+    
+    '''t=['0', '1', '', '0', '0', '8.4583', '0']       
     for i in range(len(t)):
          if  t[i]=='':
              t[i]=0
          else:
-             t[i]=1        
+             t[i]=1  '''      
   
+#-----------------------------------------------------------------------------    
+    #run all data into a dict 
+    ls_question = split_line(whole_data[0])
+#-----------------------------------------------------------------------------       
+ list_of_answers=[]  #ls_queation is the dynamic key names
+ for line in whole_data1:
+     dic={}
+    #print(line)
+     x=line.split(",",228)  #maximum allawance of split to the 229th location
+     for i in range(228):
+         dic[ls_question[i]]=x[i]
+     list_of_answers.append(dic)
+#-----------------------------------------------------------------------------    
+#-----------------------------------------------------------------------------    
+#use this demo code to strip out the list_of_answers
+    usr = []  #not gonna use this in training; but can do analysis; word count
+for line in list_of_dic:
+    #print((line['class']))
+    #replace " by space
+    usr.append(line['user'].replace('"', ' ').strip())
+    
+lb_list=[]
+for line in list_of_dic:
+    #print((line['class']))
+    #replace " by space
+    lb_list.append(int(line['label'].replace('"', ' ').strip()))
+#-----------------------------------------------------------------------------    
+
          
 pd.read_csv('multipleChoiceResponses.csv', sep='|', names=None , encoding='latin-1')
 
