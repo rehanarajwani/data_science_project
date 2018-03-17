@@ -13,7 +13,9 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 import csv
 import pandas as pd
 import re
-from decimal import Decimal
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 
 #-----------------------------------------------------------------------------
 def csv_read_column(file_obj,column_num):
@@ -54,7 +56,6 @@ def split_line(text):
     to_ls = []
     for word in words:
         to_ls.append(word)
-        
     return to_ls
 #-----------------------------------------------------------------------------
  #find not empty rows
@@ -79,7 +80,6 @@ def filter_rows_has_txt(idx_ls,var_wait_for_filter):
     for i in range(len(idx_ls)):
           filter_.append(var_wait_for_filter[idx_ls[i]])
     return filter_
-
 #-----------------------------------------------------------------------------
  #currency conversion   Convert all to USD    overwrite original data
 def currecy_conver(input_sal, input_cur ,cur_country, ex_rt):
@@ -91,7 +91,14 @@ def currecy_conver(input_sal, input_cur ,cur_country, ex_rt):
            input_cur[i] ='USD'
            input_sal[i]=input_sal[i]*ex_rt[j]
     return input_sal,input_cur
-          
+#-----------------------------------------------------------------------------
+  #verization function
+def vec_d(text_input):
+     vectorizer = TfidfVectorizer()
+     X = vectorizer.fit_transform(text_input)
+     arr_x = X.toarray()
+     feature = vectorizer.get_feature_names() 
+     return arr_x,feature
 '''##############################################################################'''
 '''##############################################################################'''
 '''##############################################################################'''
@@ -173,7 +180,6 @@ if __name__ == "__main__":
            fil_sal[x]='0'
     fil_cur= fil_compen_curr1
     fil_sal[216]='100000000000'
-
 #-----------------------------------------------------------------------------  
   #currency conversion
     csv_path = 'conversionRates.csv'
@@ -194,17 +200,95 @@ if __name__ == "__main__":
    #convert all to USD
    fil_sal_us,fil_cur_us=currecy_conver(fil_sal, fil_cur ,cur_country, ex_rt)
    
-   
-   
+#-----------------------------------------------------------------------------  
+  #label the fil_sal_us  
+  lb_sal=[2]*len(fil_sal_us) #creat a random list
+  for i in range(len(fil_sal_us)):
+       if fil_sal_us[i]<50000:
+          lb_sal[i]=1
+       if 50000<fil_sal_us[i]<75000:
+          lb_sal[i]=2
+       if 75000<fil_sal_us[i]<100000:
+          lb_sal[i]=3
+       if fil_sal_us[i]>100000:
+          lb_sal[i]=4
+  plt.hist(lb_sal)
+
+#-----------------------------------------------------------------------------  
+  #vectorization and extract the feature names
+     arr_tool, fea_tool = vec_d(fil_tool)  
+     arr_shrtool, fea_shrtool = vec_d(fil_work_shr_tool) 
+     arr_dtsz, fea_dtsz = vec_d(fil_work_dtsz) 
+ 
+     arr_whole = np.concatenate((arr_tool, arr_shrtool), axis=1)
+     arr_whole = np.concatenate((arr_whole, arr_dtsz), axis=1)
+     
+     arr_lb_sal = np.asarray(lb_sal)
+    
+
+    
+     from sklearn.model_selection import train_test_split
+     from sklearn.linear_model import LogisticRegression
+     X_train, X_test, y_train, y_test = train_test_split(arr_whole, arr_lb_sal, test_size=0.30, random_state=42)
+     lr = LogisticRegression(penalty='l2',dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None)
+     lr.fit(X_train,y_train) 
+     print('The Train Accuracy {0:.3f}.'.format((lr.predict(X_train)== y_train).mean()))
+     print('The Test Accuracy {0:.3f}.'.format((lr.predict(X_test)== y_test).mean()))
+     
+     from sklearn.neighbors import KNeighborsClassifier
+     i=3 #give the best result  For whole data. The Train Accuracy 0.596. The Test Accuracy 0.422.
+         
+     knn = KNeighborsClassifier(n_neighbors=i)
+     knn.fit(X_train,y_train) 
+     print('i=', i)
+     print('The Train Accuracy {0:.3f}.'.format((knn.predict(X_train)== y_train).mean()))
+     print('The Test Accuracy {0:.3f}.'.format((knn.predict(X_test)== y_test).mean()))
+     
+     
+     https://machinelearningmastery.com/feature-selection-machine-learning-python/
+     read section: look for Feature Importance
+     https://chrisalbon.com/machine_learning/trees_and_forests/random_forest_classifier_example/
+     read section: View Feature Importance
+     
+     
+     
+from sklearn.model_selection import cross_val_score
+from sklearn.datasets import make_blobs
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+clf = RandomForestClassifier(n_estimators=20,max_depth=9, min_samples_split=2,bootstrap=True)
+clf = clf.fit(X_train, y_train)
+print('The Train Accuracy {0:.3f}.'.format((clf.predict(X_train)== y_train).mean()))
+print('The Test Accuracy {0:.3f}.'.format((clf.predict(X_test)== y_test).mean()))
+
+
+clf = DecisionTreeClassifier(max_depth=None, min_samples_split=2,random_state=0)
+scores = cross_val_score(clf, arr_whole, arr_lb_sal) 
+scores.mean()                             
+
+
+clf = RandomForestClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
+scores = cross_val_score(clf, arr_whole, arr_lb_sal)
+scores.mean()                             
+
+
+clf = ExtraTreesClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
+scores = cross_val_score(clf, arr_whole, arr_lb_sal)
+scores.mean() 
+    
 
 000000000000000000000000000000000000000000000000000000000000000000000000000000   
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
    useful dataset: fil_sal_us,fil_tool,fil_work_shr_tool,fil_work_dtsz
     1. convert the currecy  --done
-    2. use bag of words!!!!
-    3. convert salary range to 1 2 3 4 5
-    3. convert text of fil_tool to value (by converter)
-    3. predict
+    2. convert salary range to 1 2 3 4 5 --done
+    3. vectorization --done
+    3. convert text of fil_tool to value (by converter)  --done
+    3. predict   --done  only around 59%
+    3. put more features and do importance rating
+    3. testing prediction is too low // doesnt make sense
     4. plot datasize against the other things
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 000000000000000000000000000000000000000000000000000000000000000000000000000000
