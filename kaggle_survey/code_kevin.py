@@ -277,7 +277,12 @@ scores.mean()
 clf = ExtraTreesClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
 scores = cross_val_score(clf, arr_whole, arr_lb_sal)
 scores.mean() 
-    
+
+
+clf = ExtraTreesClassifier(n_estimators=15, max_depth=None,min_samples_split=2, random_state=0)
+scores = cross_val_score(clf, arr_whole, arr_lb_sal)
+scores.mean() 
+   
 
 000000000000000000000000000000000000000000000000000000000000000000000000000000   
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -293,7 +298,6 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 000000000000000000000000000000000000000000000000000000000000000000000000000000
 
-      
     
     
     '''t=['0', '1', '', '0', '0', '8.4583', '0']       
