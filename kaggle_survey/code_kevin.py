@@ -134,6 +134,7 @@ if __name__ == "__main__":
     #read the compensation and skills and maybe other features out
         #read info by specify column name
     csv_path = 'multipleChoiceResponses.csv'
+    #name0= "Age"
     name1= "CompensationAmount"
     name2= "CompensationCurrency"    
     name3= "WorkToolsSelect"   #the tool they are using at work
@@ -206,12 +207,12 @@ if __name__ == "__main__":
   for i in range(len(fil_sal_us)):
        if fil_sal_us[i]<50000:
           lb_sal[i]=1
-       if 50000<fil_sal_us[i]<75000:
+       #if 50000<fil_sal_us[i]<75000:
+          #lb_sal[i]=2
+       if 50000<fil_sal_us[i]<100000:
           lb_sal[i]=2
-       if 75000<fil_sal_us[i]<100000:
-          lb_sal[i]=3
        if fil_sal_us[i]>100000:
-          lb_sal[i]=4
+          lb_sal[i]=3
   plt.hist(lb_sal)
 
 #-----------------------------------------------------------------------------  
@@ -229,7 +230,7 @@ if __name__ == "__main__":
     
      from sklearn.model_selection import train_test_split
      from sklearn.linear_model import LogisticRegression
-     X_train, X_test, y_train, y_test = train_test_split(arr_whole, arr_lb_sal, test_size=0.30, random_state=42)
+     X_train, X_test, y_train, y_test = train_test_split(arr_whole, arr_lb_sal, test_size=0.20, random_state=42)
      lr = LogisticRegression(penalty='l2',dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None)
      lr.fit(X_train,y_train) 
      print('The Train Accuracy {0:.3f}.'.format((lr.predict(X_train)== y_train).mean()))
@@ -244,12 +245,7 @@ if __name__ == "__main__":
      print('The Train Accuracy {0:.3f}.'.format((knn.predict(X_train)== y_train).mean()))
      print('The Test Accuracy {0:.3f}.'.format((knn.predict(X_test)== y_test).mean()))
      
-     
-     https://machinelearningmastery.com/feature-selection-machine-learning-python/
-     read section: look for Feature Importance
-     https://chrisalbon.com/machine_learning/trees_and_forests/random_forest_classifier_example/
-     read section: View Feature Importance
-     
+
      
      
 from sklearn.model_selection import cross_val_score
@@ -258,10 +254,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-clf = RandomForestClassifier(n_estimators=20,max_depth=9, min_samples_split=2,bootstrap=True)
-clf = clf.fit(X_train, y_train)
-print('The Train Accuracy {0:.3f}.'.format((clf.predict(X_train)== y_train).mean()))
-print('The Test Accuracy {0:.3f}.'.format((clf.predict(X_test)== y_test).mean()))
+
+for i in range(30):
+  for j in range(60):
+   clf = RandomForestClassifier(n_estimators=i+1,max_depth=j+2, min_samples_split=2,bootstrap=True, max_features='auto')
+   clf = clf.fit(X_train, y_train)
+   if 0.8>(clf.predict(X_train)== y_train).mean()>0.59 :
+     if (clf.predict(X_test)== y_test).mean()>0.5 :
+      print('i', i)
+      print('j', j)
+      print('The Train Accuracy {0:.3f}.'.format((clf.predict(X_train)== y_train).mean()))
+      print('The Test Accuracy {0:.3f}.'.format((clf.predict(X_test)== y_test).mean()))
+      
+      
 
 
 clf = DecisionTreeClassifier(max_depth=None, min_samples_split=2,random_state=0)
@@ -269,7 +274,8 @@ scores = cross_val_score(clf, arr_whole, arr_lb_sal)
 scores.mean()                             
 
 
-clf = RandomForestClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
+clf = RandomForestClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_stat
+                             e=0)
 scores = cross_val_score(clf, arr_whole, arr_lb_sal)
 scores.mean()                             
 
@@ -283,7 +289,28 @@ clf = ExtraTreesClassifier(n_estimators=15, max_depth=None,min_samples_split=2, 
 scores = cross_val_score(clf, arr_whole, arr_lb_sal)
 scores.mean() 
    
+try to use age as feature to see if that contribut to salary
+see polynomial model
+and linear model
 
+
+Next Task:
+     
+  
+     1. Indeed data //city  skills  job title ---> salary
+       
+     https://machinelearningmastery.com/feature-selection-machine-learning-python/
+     read section: Look for Feature Importance
+     https://chrisalbon.com/machine_learning/trees_and_forests/random_forest_classifier_example/
+     read section: View Feature Importance
+     2. add more features like    CoursePlatformSelect, to see whether we can boost 
+     accuracy//  if still low accuracy then just do feature importance:
+
+     3. correlation map
+     
+     
+     
+     
 000000000000000000000000000000000000000000000000000000000000000000000000000000   
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
    useful dataset: fil_sal_us,fil_tool,fil_work_shr_tool,fil_work_dtsz
